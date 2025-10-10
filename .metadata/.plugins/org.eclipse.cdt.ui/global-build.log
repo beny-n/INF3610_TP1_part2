@@ -1,0 +1,250 @@
+Running Make libs in ps7_cortexa9_0/libsrc/scugic_v3_10/src
+make -C ps7_cortexa9_0/libsrc/scugic_v3_10/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling scugic
+Running Make libs in ps7_cortexa9_0/libsrc/scuwdt_v2_1/src
+make -C ps7_cortexa9_0/libsrc/scuwdt_v2_1/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling scuwdt
+Running Make libs in ps7_cortexa9_0/libsrc/tmrctr_v4_5/src
+make -C ps7_cortexa9_0/libsrc/tmrctr_v4_5/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling tmrctr
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_common_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_common_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling uC/OS Common Components
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_emacps_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_emacps_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling ucos_usbps
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_l2cachec_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_l2cachec_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling ucos_scuc
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_osiii_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_osiii_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling uC/OS-III
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_scuc_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_scuc_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling ucos_l2cachec
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_scutimer_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_scutimer_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling scutimer
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_standalone_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_standalone_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling standalone
+inbyte.c: In function 'inbyte':
+inbyte.c:11:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+In file included from sleep.c:53:0:
+xtime_l.h:87:9: note: #pragma message: For the sleep routines, Global timer is being used
+ #pragma message ("For the sleep routines, Global timer is being used")
+         ^~~~~~~
+In file included from usleep.c:56:0:
+xtime_l.h:87:9: note: #pragma message: For the sleep routines, Global timer is being used
+ #pragma message ("For the sleep routines, Global timer is being used")
+         ^~~~~~~
+In file included from xil_sleeptimer.c:51:0:
+xtime_l.h:87:9: note: #pragma message: For the sleep routines, Global timer is being used
+ #pragma message ("For the sleep routines, Global timer is being used")
+         ^~~~~~~
+In file included from xtime_l.c:49:0:
+xtime_l.h:87:9: note: #pragma message: For the sleep routines, Global timer is being used
+ #pragma message ("For the sleep routines, Global timer is being used")
+         ^~~~~~~
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_uartps_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_uartps_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling ucos_emacps
+ucos_uartps.c: In function 'UARTPS_BaudRateSet':
+ucos_uartps.c:476:19: warning: 'best_baud_rate_gen' may be used uninitialized in this function [-Wmaybe-uninitialized]
+     uart_ps->BAUD = best_baud_rate_gen;
+     ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+ucos_uartps.c:477:23: warning: 'best_baud_div' may be used uninitialized in this function [-Wmaybe-uninitialized]
+     uart_ps->BAUD_DIV = best_baud_div;
+     ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_usbps_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_usbps_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling ucos_usbps
+Running Make libs in ps7_cortexa9_0/libsrc/ucos_v1_44/src
+make -C ps7_cortexa9_0/libsrc/ucos_v1_44/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling uC/OS
+Running Make libs in ps7_cortexa9_0/libsrc/xadcps_v2_3/src
+make -C ps7_cortexa9_0/libsrc/xadcps_v2_3/src -s libs  "SHELL=/bin/sh" "COMPILER=arm-none-eabi-gcc" "ARCHIVER=arm-none-eabi-ar" "COMPILER_FLAGS=  -O2 -c" "EXTRA_COMPILER_FLAGS=-mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -nostartfiles -g -Wall -Wextra"
+Compiling xadcps
+Finished building libraries
+11:44:35 **** Incremental Build of configuration Debug for project lab1_part2 ****
+make pre-build main-build 
+a9-linaro-pre-build-step
+ 
+Building file: ../src/interruptions.c
+Invoking: ARM v7 gcc compiler
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/interruptions.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -I../../ucos_bsp_0/ps7_cortexa9_0/include -MMD -MP -MF"src/interruptions.d" -MT"src/interruptions.o" -o "src/interruptions.o" "../src/interruptions.c"
+../src/interruptions.c: In function 'connect_fit_timer_irq0':
+../src/interruptions.c:82:48: warning: passing argument 3 of 'XIntc_Connect' from incompatible pointer type [-Wincompatible-pointer-types]
+  status = XIntc_Connect(&axi_intc, FIT_IRQ_ID, fit_timer_isr, NULL);
+                                                ^~~~~~~~~~~~~
+In file included from ../src/routeur.h:36:0,
+                 from ../src/interrupts.h:9,
+                 from ../src/interruptions.c:8:
+../../ucos_bsp_0/ps7_cortexa9_0/include/xintc.h:339:5: note: expected 'XInterruptHandler {aka void (*)(void *)}' but argument is of type 'void (*)(void *, CPU_INT32U) {aka void (*)(void *, unsigned int)}'
+ int XIntc_Connect(XIntc * InstancePtr, u8 Id,
+     ^~~~~~~~~~~~~
+../src/interruptions.c: In function 'connect_gpio_irq0':
+../src/interruptions.c:95:60: warning: passing argument 3 of 'XIntc_Connect' from incompatible pointer type [-Wincompatible-pointer-types]
+  int status = XIntc_Connect(&axi_intc, GPIO_BUTTON_IRQ_ID, gpio_isr0, &gpButton);
+                                                            ^~~~~~~~~
+In file included from ../src/routeur.h:36:0,
+                 from ../src/interrupts.h:9,
+                 from ../src/interruptions.c:8:
+../../ucos_bsp_0/ps7_cortexa9_0/include/xintc.h:339:5: note: expected 'XInterruptHandler {aka void (*)(void *)}' but argument is of type 'void (*)(void *, CPU_INT32U) {aka void (*)(void *, unsigned int)}'
+ int XIntc_Connect(XIntc * InstancePtr, u8 Id,
+     ^~~~~~~~~~~~~
+../src/interruptions.c: In function 'connect_gpio_irq1':
+../src/interruptions.c:104:60: warning: passing argument 3 of 'XIntc_Connect' from incompatible pointer type [-Wincompatible-pointer-types]
+  int status = XIntc_Connect(&axi_intc, GPIO_SWITCH_IRQ_ID, gpio_isr1, &gpSwitch);
+                                                            ^~~~~~~~~
+In file included from ../src/routeur.h:36:0,
+                 from ../src/interrupts.h:9,
+                 from ../src/interruptions.c:8:
+../../ucos_bsp_0/ps7_cortexa9_0/include/xintc.h:339:5: note: expected 'XInterruptHandler {aka void (*)(void *)}' but argument is of type 'void (*)(void *, CPU_INT32U) {aka void (*)(void *, unsigned int)}'
+ int XIntc_Connect(XIntc * InstancePtr, u8 Id,
+     ^~~~~~~~~~~~~
+In file included from ../src/interrupts.h:9:0,
+                 from ../src/interruptions.c:8:
+At top level:
+../src/routeur.h:159:15: warning: 'StartupTaskTCB' defined but not used [-Wunused-variable]
+ static OS_TCB StartupTaskTCB;
+               ^~~~~~~~~~~~~~
+../src/routeur.h:158:15: warning: 'TaskStopTCB' defined but not used [-Wunused-variable]
+ static OS_TCB TaskStopTCB;
+               ^~~~~~~~~~~
+../src/routeur.h:157:15: warning: 'TaskResetTCB' defined but not used [-Wunused-variable]
+ static OS_TCB TaskResetTCB;
+               ^~~~~~~~~~~~
+../src/routeur.h:156:15: warning: 'TaskOutputPortTCB' defined but not used [-Wunused-variable]
+ static OS_TCB TaskOutputPortTCB[NB_OUTPUT_PORTS];
+               ^~~~~~~~~~~~~~~~~
+../src/routeur.h:155:15: warning: 'TaskComputingTCB' defined but not used [-Wunused-variable]
+ static OS_TCB TaskComputingTCB[NB_FIFO];
+               ^~~~~~~~~~~~~~~~
+../src/routeur.h:154:15: warning: 'TaskQueueingTCB' defined but not used [-Wunused-variable]
+ static OS_TCB TaskQueueingTCB;
+               ^~~~~~~~~~~~~~~
+../src/routeur.h:153:15: warning: 'TaskStatsTCB' defined but not used [-Wunused-variable]
+ static OS_TCB TaskStatsTCB;
+               ^~~~~~~~~~~~
+../src/routeur.h:152:15: warning: 'TaskGenerateTCB' defined but not used [-Wunused-variable]
+ static OS_TCB TaskGenerateTCB;
+               ^~~~~~~~~~~~~~~
+../src/routeur.h:148:16: warning: 'StartupTaskStk' defined but not used [-Wunused-variable]
+ static CPU_STK StartupTaskStk[TASK_STK_SIZE];
+                ^~~~~~~~~~~~~~
+../src/routeur.h:147:16: warning: 'TaskStopSTK' defined but not used [-Wunused-variable]
+ static CPU_STK TaskStopSTK[TASK_STK_SIZE];
+                ^~~~~~~~~~~
+../src/routeur.h:146:16: warning: 'TaskResetSTK' defined but not used [-Wunused-variable]
+ static CPU_STK TaskResetSTK[TASK_STK_SIZE];
+                ^~~~~~~~~~~~
+../src/routeur.h:145:16: warning: 'TaskStatsSTK' defined but not used [-Wunused-variable]
+ static CPU_STK TaskStatsSTK[TASK_STK_SIZE];
+                ^~~~~~~~~~~~
+../src/routeur.h:144:16: warning: 'TaskOutputPortSTK' defined but not used [-Wunused-variable]
+ static CPU_STK TaskOutputPortSTK[NB_OUTPUT_PORTS][TASK_STK_SIZE];
+                ^~~~~~~~~~~~~~~~~
+../src/routeur.h:143:16: warning: 'TaskComputingSTK' defined but not used [-Wunused-variable]
+ static CPU_STK TaskComputingSTK[NB_FIFO][TASK_STK_SIZE];
+                ^~~~~~~~~~~~~~~~
+../src/routeur.h:142:16: warning: 'TaskQueueingSTK' defined but not used [-Wunused-variable]
+ static CPU_STK TaskQueueingSTK[TASK_STK_SIZE];
+                ^~~~~~~~~~~~~~~
+../src/routeur.h:141:16: warning: 'TaskGenerateSTK' defined but not used [-Wunused-variable]
+ static CPU_STK TaskGenerateSTK[TASK_STK_SIZE];
+                ^~~~~~~~~~~~~~~
+Finished building: ../src/interruptions.c
+ 
+Building file: ../src/routeur.c
+Invoking: ARM v7 gcc compiler
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/routeur.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -I../../ucos_bsp_0/ps7_cortexa9_0/include -MMD -MP -MF"src/routeur.d" -MT"src/routeur.o" -o "src/routeur.o" "../src/routeur.c"
+../src/routeur.c: In function 'create_tasks':
+../src/routeur.c:113:6: warning: unused variable 'i' [-Wunused-variable]
+  int i;
+      ^
+../src/routeur.c: In function 'create_events':
+../src/routeur.c:124:6: warning: unused variable 'i' [-Wunused-variable]
+  int i;
+      ^
+../src/routeur.c: In function 'TaskGenerate':
+../src/routeur.c:270:133: warning: unknown escape sequence: '\T'
+     safeprintf("\TaskGenenerate: nb de paquets dans fifo de TaskQueueing - apres production: %d \n", TaskQueueingTCB.MsgQ.NbrEntries);
+                                                                                                                                     ^
+../src/routeur.c: In function 'TaskReset':
+../src/routeur.c:302:12: warning: variable 'flags' set but not used [-Wunused-but-set-variable]
+  OS_FLAGS  flags;
+            ^~~~~
+../src/routeur.c:301:6: warning: unused variable 'i' [-Wunused-variable]
+  int i;
+      ^
+../src/routeur.c:299:9: warning: unused variable 'ts' [-Wunused-variable]
+  CPU_TS ts;
+         ^~
+../src/routeur.c: In function 'TaskStop':
+../src/routeur.c:316:12: warning: variable 'flags' set but not used [-Wunused-but-set-variable]
+  OS_FLAGS  flags;
+            ^~~~~
+../src/routeur.c: In function 'computeCRC':
+../src/routeur.c:343:9: warning: unused variable 'err' [-Wunused-variable]
+  OS_ERR err;
+         ^~~
+../src/routeur.c:341:15: warning: unused variable 'Nb_of_ticks_in_CRC_init' [-Wunused-variable]
+  unsigned int Nb_of_ticks_in_CRC_init = 0;
+               ^~~~~~~~~~~~~~~~~~~~~~~
+../src/routeur.c:340:15: warning: unused variable 'nb_calls' [-Wunused-variable]
+  unsigned int nb_calls = 0;
+               ^~~~~~~~
+../src/routeur.c: In function 'TaskQueueing':
+../src/routeur.c:429:90: warning: unknown escape sequence: '\T'
+     safeprintf("\TaskQueueing: Erreur sur la priorite du paquet - %d \n", packet->data[0]);
+                                                                                          ^
+../src/routeur.c:386:10: warning: unused variable 'actualticks' [-Wunused-variable]
+  OS_TICK actualticks = 0;
+          ^~~~~~~~~~~
+../src/routeur.c: In function 'TaskComputing':
+../src/routeur.c:473:8: warning: unused variable 'nombre' [-Wunused-variable]
+  float nombre;
+        ^~~~~~
+../src/routeur.c: In function 'TaskStats':
+../src/routeur.c:700:10: warning: unused variable 'actualticks' [-Wunused-variable]
+  OS_TICK actualticks;
+          ^~~~~~~~~~~
+../src/routeur.c:698:14: warning: unused variable 'perr' [-Wunused-variable]
+  OS_ERR err, perr;
+              ^~~~
+../src/routeur.c: In function 'StartupTask':
+../src/routeur.c:940:33: warning: passing argument 1 of 'CPU_TS_TmrFreqGet' from incompatible pointer type [-Wincompatible-pointer-types]
+     freq_hz = CPU_TS_TmrFreqGet(&err);  /* Get CPU timestamp timer frequency. */
+                                 ^
+In file included from ../../ucos_bsp_0/ps7_cortexa9_0/include/lib_mem.h:106:0,
+                 from ../src/routeur.h:13,
+                 from ../src/routeur.c:17:
+../../ucos_bsp_0/ps7_cortexa9_0/include/cpu_core.h:556:18: note: expected 'CPU_ERR * {aka enum cpu_err *}' but argument is of type 'OS_ERR * {aka enum os_err *}'
+ CPU_TS_TMR_FREQ  CPU_TS_TmrFreqGet        (CPU_ERR          *p_err);
+                  ^~~~~~~~~~~~~~~~~
+Finished building: ../src/routeur.c
+ 
+Building target: lab1_part2.elf
+Invoking: ARM v7 gcc linker
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -L../../ucos_bsp_0/ps7_cortexa9_0/lib -o "lab1_part2.elf" ./src/Ajout_d_une_fonction_juste_avant_Task_Generate.o ./src/Ajout_de_code_dans_StartUpTask.o ./src/Mise_a_jour_dans_TaskStats.o ./src/interruptions.o ./src/routeur.o   -Wl,--start-group,-lucos,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+Finished building target: lab1_part2.elf
+ 
+Invoking: ARM v7 Print Size
+arm-none-eabi-size lab1_part2.elf  |tee "lab1_part2.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 141468	   2670	3701856	3845994	 3aaf6a	lab1_part2.elf
+Finished building: lab1_part2.elf.size
+ 
+11:45:11 **** Incremental Build of configuration Debug for project lab1_part2 ****
+make pre-build main-build 
+a9-linaro-pre-build-step
+ 
+make: Nothing to be done for 'main-build'.
+11:45:25 **** Incremental Build of configuration Debug for project lab1_part2 ****
+make pre-build main-build 
+a9-linaro-pre-build-step
+ 
+make: Nothing to be done for 'main-build'.
