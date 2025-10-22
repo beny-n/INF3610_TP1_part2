@@ -1,8 +1,120 @@
-11:45:25 **** Incremental Build of configuration Debug for project lab1_part2 ****
+18:08:54 **** Auto Build of configuration Debug for project lab1_part2 ****
 make pre-build main-build 
 a9-linaro-pre-build-step
  
-make: Nothing to be done for 'main-build'.
+Building file: ../src/routeur.c
+Invoking: ARM v7 gcc compiler
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/routeur.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -I../../ucos_bsp_0/ps7_cortexa9_0/include -MMD -MP -MF"src/routeur.d" -MT"src/routeur.o" -o "src/routeur.o" "../src/routeur.c"
+../src/routeur.c: In function 'create_tasks':
+../src/routeur.c:124:6: warning: unused variable 'i' [-Wunused-variable]
+  int i;
+      ^
+../src/routeur.c: In function 'create_events':
+../src/routeur.c:135:6: warning: unused variable 'i' [-Wunused-variable]
+  int i;
+      ^
+../src/routeur.c: In function 'gpio_isr0':
+../src/routeur.c:224:12: warning: unused variable 'ts' [-Wunused-variable]
+     CPU_TS ts;
+            ^~
+../src/routeur.c: In function 'fit_timer_isr':
+../src/routeur.c:266:12: warning: unused variable 'ts' [-Wunused-variable]
+     CPU_TS ts;
+            ^~
+../src/routeur.c: In function 'TaskGenerate':
+../src/routeur.c:303:6: warning: unused variable 'nb_rafales' [-Wunused-variable]
+  int nb_rafales = 0;
+      ^~~~~~~~~~
+../src/routeur.c:300:14: warning: unused variable 'perr' [-Wunused-variable]
+  OS_ERR err, perr;
+              ^~~~
+../src/routeur.c: In function 'TaskReset':
+../src/routeur.c:395:12: warning: variable 'flags' set but not used [-Wunused-but-set-variable]
+  OS_FLAGS  flags;
+            ^~~~~
+../src/routeur.c:394:6: warning: unused variable 'i' [-Wunused-variable]
+  int i;
+      ^
+../src/routeur.c: In function 'TaskStop':
+../src/routeur.c:423:12: warning: variable 'flags' set but not used [-Wunused-but-set-variable]
+  OS_FLAGS  flags;
+            ^~~~~
+../src/routeur.c: In function 'computeCRC':
+../src/routeur.c:476:9: warning: unused variable 'err' [-Wunused-variable]
+  OS_ERR err;
+         ^~~
+../src/routeur.c:474:15: warning: unused variable 'Nb_of_ticks_in_CRC_init' [-Wunused-variable]
+  unsigned int Nb_of_ticks_in_CRC_init = 0;
+               ^~~~~~~~~~~~~~~~~~~~~~~
+../src/routeur.c:473:15: warning: unused variable 'nb_calls' [-Wunused-variable]
+  unsigned int nb_calls = 0;
+               ^~~~~~~~
+../src/routeur.c: In function 'TaskQueueing':
+../src/routeur.c:519:10: warning: unused variable 'actualticks' [-Wunused-variable]
+  OS_TICK actualticks = 0;
+          ^~~~~~~~~~~
+../src/routeur.c:515:14: warning: unused variable 'perr' [-Wunused-variable]
+  OS_ERR err, perr;
+              ^~~~
+../src/routeur.c: In function 'TaskComputing':
+../src/routeur.c:605:8: warning: unused variable 'nombre' [-Wunused-variable]
+  float nombre;
+        ^~~~~~
+../src/routeur.c:603:12: warning: unused variable 'info' [-Wunused-variable]
+  Info_FIFO info = *(Info_FIFO*)pdata;
+            ^~~~
+../src/routeur.c: In function 'TaskOutputPort':
+../src/routeur.c:796:12: warning: unused variable 'info' [-Wunused-variable]
+  Info_Port info = *(Info_Port*)data;
+            ^~~~
+../src/routeur.c:792:14: warning: unused variable 'perr' [-Wunused-variable]
+  OS_ERR err, perr;
+              ^~~~
+../src/routeur.c: In function 'TaskStats':
+../src/routeur.c:834:14: warning: unused variable 'msg_size' [-Wunused-variable]
+  OS_MSG_SIZE msg_size;
+              ^~~~~~~~
+../src/routeur.c:833:10: warning: unused variable 'packet' [-Wunused-variable]
+  Packet* packet = NULL;
+          ^~~~~~
+../src/routeur.c:832:10: warning: unused variable 'actualticks' [-Wunused-variable]
+  OS_TICK actualticks;
+          ^~~~~~~~~~~
+../src/routeur.c:830:14: warning: unused variable 'perr' [-Wunused-variable]
+  OS_ERR err, perr;
+              ^~~~
+../src/routeur.c: In function 'StartupTask':
+../src/routeur.c:1081:37: warning: passing argument 1 of 'CPU_TS_TmrFreqGet' from incompatible pointer type [-Wincompatible-pointer-types]
+         freq_hz = CPU_TS_TmrFreqGet(&err);  /* Get CPU timestamp timer frequency. */
+                                     ^
+In file included from ../../ucos_bsp_0/ps7_cortexa9_0/include/lib_mem.h:106:0,
+                 from ../src/routeur.h:13,
+                 from ../src/routeur.c:17:
+../../ucos_bsp_0/ps7_cortexa9_0/include/cpu_core.h:556:18: note: expected 'CPU_ERR * {aka enum cpu_err *}' but argument is of type 'OS_ERR * {aka enum os_err *}'
+ CPU_TS_TMR_FREQ  CPU_TS_TmrFreqGet        (CPU_ERR          *p_err);
+                  ^~~~~~~~~~~~~~~~~
+../src/routeur.c:1093:33: warning: passing argument 1 of 'CPU_TS_TmrFreqGet' from incompatible pointer type [-Wincompatible-pointer-types]
+     freq_hz = CPU_TS_TmrFreqGet(&err);  /* Get CPU timestamp timer frequency. */
+                                 ^
+In file included from ../../ucos_bsp_0/ps7_cortexa9_0/include/lib_mem.h:106:0,
+                 from ../src/routeur.h:13,
+                 from ../src/routeur.c:17:
+../../ucos_bsp_0/ps7_cortexa9_0/include/cpu_core.h:556:18: note: expected 'CPU_ERR * {aka enum cpu_err *}' but argument is of type 'OS_ERR * {aka enum os_err *}'
+ CPU_TS_TMR_FREQ  CPU_TS_TmrFreqGet        (CPU_ERR          *p_err);
+                  ^~~~~~~~~~~~~~~~~
+Finished building: ../src/routeur.c
+ 
+Building target: lab1_part2.elf
+Invoking: ARM v7 gcc linker
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -L../../ucos_bsp_0/ps7_cortexa9_0/lib -o "lab1_part2.elf" ./src/Ajout_d_une_fonction_juste_avant_Task_Generate.o ./src/Ajout_de_code_dans_StartUpTask.o ./src/Mise_a_jour_dans_TaskStats.o ./src/interruptions.o ./src/routeur.o   -Wl,--start-group,-lucos,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+Finished building target: lab1_part2.elf
+ 
+Invoking: ARM v7 Print Size
+arm-none-eabi-size lab1_part2.elf  |tee "lab1_part2.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 140452	   2670	3701888	3845010	 3aab92	lab1_part2.elf
+Finished building: lab1_part2.elf.size
+ 
 
-11:45:25 Build Finished (took 114ms)
+18:08:55 Build Finished (took 313ms)
 

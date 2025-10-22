@@ -1,0 +1,219 @@
+/*
+ *********************************************************************************************************
+ *											  Interrupts
+ 
+ *											  
+ *********************************************************************************************************
+ */
+#include "interrupts.h"
+
+#include "routeur.h"
+
+
+
+//void gpio_isr0(void *p_int_arg, CPU_INT32U source_cpu) {
+//	CPU_TS ts;
+//	OS_ERR err;
+//	OS_FLAGS flags;
+//	int button_data = 0;
+////	Lecture du bouton et affichage du led correspondant avec button_data
+////	(N.B. inspirez-vous du no 34 et du vidéo pour le
+//	//	DiscreteRead et DiscreteWrite, mais aussi pour comprendre le
+//	//	fonctionnement des drivers pour ISR avec Xilinx sur Pynq Z2)
+//	//	Référez aussi à interrupts.h
+//
+//
+//	xil_printf("---------------gpio_isr0---------------\n");
+////	XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
+////	XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
+//
+////	On regarde quel bouton a été activé en le mettant dans button_data
+////	Si button_data == BP0:
+//	//	On fait un rendez-vous unilatéral avec OSFlagPost pour
+//	//	démarrer TaskReady via le masque TASK_RESET_RDY.
+//	//	TaskReady va s’occuper de (re)démarrer le système.
+////	Sinon si button_data == BP1:
+//	//	On fait un rendez-vous unilatéral avec OSFlagPost pour
+//	//	démarrer TaskStop via le masque TASK_STOP_RDY. TaskStop va s’occuper
+//	//	de suspendre temporairement le système.
+////	Sinon si button_data == BP2:
+//	//	On fait un rendez unilatéral avec OSFlagPost pour débloquer
+//	//	StartupTask (via le masque TASK_SHUTDOWN) qui va alors s’occuper
+//	//	d’arrêter le système complètement.
+////	On met à 0 les interruptions du GPIO avec l’aide du masque XGPIO_IR_MASK
+//
+//}
+
+
+void gpio_isr0(void *p_int_arg, CPU_INT32U source_cpu) {
+    CPU_TS ts;
+    OS_ERR err;
+
+    xil_printf(">>> GPIO ISR0 déclenchée !\n");
+
+    // Lire l’état des boutons
+    int btn_data = XGpio_DiscreteRead(&gpButton, 1);
+
+    // Nettoyer les interruptions (sinon ça se relance en boucle)
+    XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
+    XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
+
+    // Réagir selon le bouton appuyé
+    if (btn_data & BP0) {
+        xil_printf("BP0 pressé → Reset Router\n");
+        OSFlagPost(&RouterStatus, TASK_RESET_RDY, OS_OPT_POST_FLAG_SET, &err);
+    } else if (btn_data & BP1) {
+        xil_printf("BP1 pressé → Stop Router\n");
+        OSFlagPost(&RouterStatus, TASK_STOP_RDY, OS_OPT_POST_FLAG_SET, &err);
+    } else if (btn_data & BP2) {
+        xil_printf("BP2 pressé → Shutdown Router\n");
+        OSFlagPost(&RouterStatus, TASK_SHUTDOWN, OS_OPT_POST_FLAG_SET, &err);
+    }
+
+    // Réactiver les interruptions GPIO
+    XGpio_InterruptEnable(&gpButton, XGPIO_IR_MASK);
+    XGpio_InterruptGlobalEnable(&gpButton);
+}
+
+void gpio_isr1(void *p_int_arg, CPU_INT32U source_cpu) {
+	xil_printf("---------------gpio_isr1---------------\n");
+	XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
+	XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
+}
+
+void fit_timer_isr (void *p_int_arg, CPU_INT32U source_cpu) {
+	xil_printf("---------------timer_isr---------------\n");
+}
+
+
+void initialize_gpio0()
+{
+	if (XST_DEVICE_NOT_FOUND == XGpio_Initialize(&gpButton, GPIO_BUTTON_DEVICE_ID))
+		UCOS_Print("Erreur init gpio\n");
+	XGpio_SetDataDirection(&gpButton, 1, 0x1);XGpio_InterruptEnable(&gpButton, XGPIO_IR_CH1_MASK);
+	XGpio_InterruptGlobalEnable(&gpButton);
+
+	XGpio_SetDataDirection(&gpButton, 2, 0x0);
+	XGpio_InterruptGlobalEnable(&gpButton);
+	XGpio_InterruptEnable(&gpButton, XGPIO_IR_MASK);
+
+}
+
+void initialize_gpio1()
+{
+	if (XST_DEVICE_NOT_FOUND == XGpio_Initialize(&gpSwitch, GPIO_SWITCH_DEVICE_ID))
+		UCOS_Print("Erreur init gpio\n");
+	XGpio_SetDataDirection(&gpSwitch, 1, 0x1);
+	XGpio_SetDataDirection(&gpSwitch, 2, 0x0);
+	XGpio_InterruptGlobalEnable(&gpSwitch);
+	XGpio_InterruptEnable(&gpSwitch, XGPIO_IR_MASK);
+}
+
+void initialize_timer()
+{
+	/* ******************************************************************************* */
+	// Setup HW timer
+	XTmrCtr_Initialize(&timer_dev, XPAR_TMRCTR_0_DEVICE_ID);
+
+	// Options: up-count + auto-reload (pour repartir de 0 apr�s reset), pas d'INT ici
+	u32 opts = XTC_AUTO_RELOAD_OPTION;
+	XTmrCtr_SetOptions(&timer_dev, 0, opts);
+	// S'assurer qu'on n'est pas en down-count
+	u32 cur = XTmrCtr_GetOptions(&timer_dev, 0);
+	cur &= ~XTC_DOWN_COUNT_OPTION;
+	XTmrCtr_SetOptions(&timer_dev, 0, cur);
+
+	// Reset value = 0 sur les deux moiti�s (utile au tout premier Reset)
+	XTmrCtr_SetResetValue(&timer_dev, 0, 0x00000000U); // LSW
+	XTmrCtr_SetResetValue(&timer_dev, 1, 0x00000000U); // MSW (par prudence)
+
+	XTmrCtr_Reset(&timer_dev, 0);   // en 64-bit mode, reset affecte le 64b
+	XTmrCtr_Start(&timer_dev, 0);   // on d�marre via timer_0
+
+}
+
+int initialize_axi_intc() {
+	int status;
+
+	status = XIntc_Initialize(&axi_intc, XPAR_AXI_INTC_0_DEVICE_ID);
+	if (status != XST_SUCCESS)
+		return XST_FAILURE;
+
+	return XST_SUCCESS;
+}
+
+int connect_fit_timer_irq0() {
+	int status;
+
+	status = XIntc_Connect(&axi_intc, FIT_IRQ_ID, fit_timer_isr, NULL);
+		if (status != XST_SUCCESS)
+			return status;
+
+	XIntc_Enable(&axi_intc, FIT_IRQ_ID);
+
+	return XST_SUCCESS;
+
+
+}
+
+int connect_gpio_irq0()
+{
+	int status = XIntc_Connect(&axi_intc, GPIO_BUTTON_IRQ_ID, gpio_isr0, &gpButton);
+	if (status == XST_SUCCESS)
+		XIntc_Enable(&axi_intc, GPIO_BUTTON_IRQ_ID);
+	return status;
+}
+
+int connect_gpio_irq1()
+{
+
+	int status = XIntc_Connect(&axi_intc, GPIO_SWITCH_IRQ_ID, gpio_isr1, &gpSwitch);
+	if (status == XST_SUCCESS)
+		XIntc_Enable(&axi_intc, GPIO_SWITCH_IRQ_ID);
+	return status;
+
+}
+
+void connect_axi() {
+
+	// La connexion est sur IRQ ID#31
+	CPU_BOOLEAN succes = UCOS_IntVectSet (PL_INTC_IRQ_ID,
+			                             1,
+			                             0,
+										 (UCOS_INT_FNCT_PTR)XIntc_DeviceInterruptHandler,
+										 (void*)(uint32_t)axi_intc.CfgPtr->DeviceId);
+	if (succes != DEF_OK)
+		UCOS_Print ("connect axi : FAIL \n");
+	succes = UCOS_IntSrcEn(PL_INTC_IRQ_ID);
+	if (succes != DEF_OK)
+		UCOS_Print ("enable axi : FAIL \n");
+
+	connect_gpio_irq0();
+	connect_gpio_irq1();
+	connect_fit_timer_irq0();
+	XIntc_Start(&axi_intc, XIN_REAL_MODE);
+
+}
+
+void cleanup() {
+	/*
+	 * Disconnect and disable the interrupt
+	 */
+
+	disconnect_intc_irq();
+	disconnect_fit_timer_irq0();
+}
+
+void disconnect_intc_irq() {
+	UCOS_IntSrcDis(PL_INTC_IRQ_ID);
+}
+
+void disconnect_fit_timer_irq0() {
+	/*
+	 * Disconnect and disable the interrupt
+	 */
+	XIntc_Disable(&axi_intc, FIT_IRQ_ID);
+	XIntc_Disconnect(&axi_intc, FIT_IRQ_ID);
+}
+
+

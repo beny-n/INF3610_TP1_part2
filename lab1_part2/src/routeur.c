@@ -53,9 +53,20 @@ int nbPacketMauvaisePrioriteTotal = 0;
 int nbPacketTraites_Video = 0;
 
 int delai_pour_vider_les_fifos_sec = 5;
-int delai_pour_vider_les_fifos_msec = 0;
+int delai_pour_vider_les_fifos_msec = 8;
 int print_paquets_rejetes = 0;
-int limite_de_paquets= 100000;
+int limite_de_paquets= 100000; // on aura plus besoin de cette variable
+
+int routerIsOn = 0;
+int routerIsOnPause = 0;
+
+int Status_CS = 0;
+int Prev_Status_CS = 0;
+
+int Status_Timer = 0;
+int Prev_Status_Timer = 0;
+
+unsigned int calibration; // Calibration de axi_timer
 
 // � utiliser pour suivre le remplissage et le vidage des fifos
 // Mettre en commentaire et utiliser la fonction vide suivante si vous ne voulez pas de trace
@@ -188,10 +199,92 @@ void Update_TS(Packet* packet) {
 *********************************************************************************************************
 */
 
-
 ///////////////////////////////////////////////////////////////////////////////////////
 //									TASKS
 ///////////////////////////////////////////////////////////////////////////////////////
+
+//int routerIsOn = 0;
+//int routerIsOnPause = 0;
+//
+//int Status_CS = 0;
+//int Prev_Status_CS = 0;
+//
+//int Status_Timer = 0;
+//int Prev_Status_Timer = 0;
+
+
+//// Evenements (masques) lies aux ISRs
+//#define TASK_RESET_RDY  				0x20	 // RDV entre gpio_isr0 et TaskReset
+//#define TASK_SHUTDOWN					0x40     // RDV entre gpio_isr0 et StartUp
+//#define TASK_STOP_RDY  				0x80	 // RDV entre fittimer0 et TaskStop
+//#define TASK_STATS_PRINT				0x100    // RDV entre TaskStop et TaskStats
+//#define TASK_RESET_MEASUREMENTS_RDY	z0x200    // RDV entre gpio_isr1 et TaskClearFifo
+
+void gpio_isr0(void *p_int_arg, CPU_INT32U source_cpu) {
+    CPU_TS ts;
+    OS_ERR err;
+
+    // Lire les boutons
+    int btn_data = XGpio_DiscreteRead(&gpButton, 1);
+
+    // Nettoyer les interruptions (sinon ça se relance en boucle)
+    XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
+    XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
+
+    // Réagir selon le bouton appuyé
+    if (btn_data & BP0) {
+        xil_printf("BP0 pressé → Reset Router GREEN\n");
+        OSFlagPost(&RouterStatus, TASK_RESET_RDY, OS_OPT_POST_FLAG_SET, &err);
+        XGpio_DiscreteWrite(&gpButton, 2, btn_data);
+        TurnLEDSwitch(COLOR_DOUBLE_GREEN); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_GREEN);
+
+    } else if (btn_data & BP1) {
+        xil_printf("BP1 pressé → Stop Router YELLOW\n");
+        OSFlagPost(&RouterStatus, TASK_STOP_RDY, OS_OPT_POST_FLAG_SET, &err);
+        XGpio_DiscreteWrite(&gpButton, 2, btn_data);
+        TurnLEDSwitch(COLOR_DOUBLE_YELLOW); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_YELLOW);
+
+    } else if (btn_data & BP2) {
+        xil_printf("BP2 pressé → Shutdown Router RED\n");
+        OSFlagPost(&RouterStatus, TASK_SHUTDOWN, OS_OPT_POST_FLAG_SET, &err);
+        XGpio_DiscreteWrite(&gpButton, 2, btn_data);
+		TurnLEDSwitch(COLOR_DOUBLE_RED); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_RED);
+    }
+
+    // Réactiver les interruptions GPIO
+    XGpio_InterruptEnable(&gpButton, XGPIO_IR_MASK);
+    XGpio_InterruptGlobalEnable(&gpButton);
+}
+
+void gpio_isr1(void *p_int_arg, CPU_INT32U source_cpu) {
+	xil_printf("---------------gpio_isr1---------------\n");
+	XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
+	XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
+}
+
+void fit_timer_isr (void *p_int_arg, CPU_INT32U source_cpu) {
+    CPU_TS ts;
+    OS_ERR err;
+
+	if(routerIsOn & !routerIsOnPause) {
+
+	//pour les statistiques
+	xil_printf("---------------timer_isr---------------\n");
+		OSFlagPost(&RouterStatus, TASK_STATS_PRINT, OS_OPT_POST_FLAG_SET + OS_OPT_POST_NO_SCHED, &err);
+	}
+}
+
+
+CPU_INT64U AXITimer64_Read(void)     // Utilisé dans TaskComputing
+{
+    // Lecture atomique MSW/LSW/MSW
+    u32 msw1 = XTmrCtr_GetValue(&timer_dev, 1);
+    u32 lsw  = XTmrCtr_GetValue(&timer_dev, 0);
+    u32 msw2 = XTmrCtr_GetValue(&timer_dev, 1);
+    if (msw2 != msw1) { lsw = XTmrCtr_GetValue(&timer_dev, 0); msw1 = msw2; }
+
+    return (((CPU_INT64U)msw1) << 32) | (CPU_INT64U)lsw;
+}
 
 /*
  *********************************************************************************************************
@@ -307,6 +400,20 @@ void TaskReset(void* data) {
 		xil_printf("--------------------- Flags: %x --------------------------\n", RouterStatus.Flags);
 		OSTaskSuspend((OS_TCB *)0,&err);
 
+		OSFlagPend(&RouterStatus, TASK_RESET_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING, &ts, &err);
+
+		if(routerIsOn) {
+			xil_printf("reset le routeur\n", RouterStatus.Flags );
+			routerIsOn = 1;
+			routerIsOnPause = 0;
+		} else {
+			//on lance pour la première fois le système
+			xil_printf("----------------- System Start --------------------\n");
+			routerIsOn = 1;
+			routerIsOnPause = 0;
+		}
+
+		OSFlagPost(&RouterStatus, TASKS_ROUTER, OS_OPT_POST_FLAG_SET, &err);
 		}
 	}
 
@@ -324,6 +431,32 @@ void TaskStop(void* data){
 		flags = OSFlagPost(&RouterStatus, TASKS_ROUTER, OS_OPT_POST_FLAG_CLR, &err);
 		xil_printf("--------------------- Flags: %x ---------------------------------------\n", RouterStatus.Flags);
 		OSTaskSuspend((OS_TCB *)0,&err);
+
+
+		// on est en train d'attendre la
+		while(1) {
+			OSFlagPend(&RouterStatus, TASK_RESET_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING + OS_OPT_PEND_FLAG_CONSUME, &ts, &err);
+			if (routerIsOnPause == 0 && routerIsOn == 1) {
+				// Met le système en pause
+//				OSFlagPost(&RouterStatus, TASK_RESET_RDY);
+				routerIsOnPause = 1;
+				xil_printf("-------- System Temporarily Suspended ---------\n");
+
+				/* Ici on affichera les statistiques à la Manip 2
+				 *   (via TaskStats et le flag TASK_STATS_PRINT)
+				 */
+			}
+		}
+		// 2 choses à compléter :
+		// 1)
+		// Rendez-vous avec gpio_isr0 via TASK_STOP_RDY
+		// 2)
+		// Si le système n'est pas suspendu temporairement
+		// - On le suspend temporairement avec la bonne variable globale
+		// - On affiche :
+//		xil_printf("-------- System Temporarily Suspended ---------\n");
+		// - Ici on devrait aussi afficher les statistiques, mais on le fera dans
+		// la prochaine section (voir point 1 dans TaskStats)
 }
 
 /*
@@ -387,7 +520,6 @@ void TaskQueueing(void *pdata) {
 	while(true){
 
 		OSFlagPend(&RouterStatus, TASK_QUEUING_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING, &ts, &err);
-
 
 		packet = OSTaskQPend(0, OS_OPT_PEND_BLOCKING, &msg_size, &ts, &err);
 
@@ -934,6 +1066,27 @@ void StartupTask (void *p_arg)
 
 
     UCOS_Print("Programme initialise - \r\n");
+
+    //CODE AJOUTÉ À STARTUP
+    	initialize_gpio0();
+    	initialize_gpio1();
+    	initialize_timer();
+    	initialize_axi_intc();
+    	connect_axi();
+
+        UCOS_Printf("Frequence  du tick d'horloge uC - %d  Hz\r\n\n", tick_rate);
+
+    	UCOS_Printf("Frequence  du tick d'horloge Hw (XTmrCtr) - 100000000 Hz\r\n");
+
+        freq_hz = CPU_TS_TmrFreqGet(&err);  /* Get CPU timestamp timer frequency. */
+
+    	UCOS_Printf("\nFrequence  du tick d'horloge Sw (CPU_TS_Get64()): %d Hz \r\n", freq_hz);
+
+    	UCOS_Printf("\nConfiguration de départ: Mutex et Timer SW \r\n");
+
+        xil_printf("\nMettre les switch to 00 (voir Fig. 2): \n");
+        xil_printf("\nPress Button 0 to start the system: \n");
+
 
     UCOS_Printf("Frequence courante du tick d horloge - %d\r\n", tick_rate);
 

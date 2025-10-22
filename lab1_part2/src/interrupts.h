@@ -36,11 +36,13 @@ XTmrCtr timer_dev;
 #define GPIO_BUTTONS_CHANNEL 		1
 #define GPIO_LEDS_CHANNEL 			2
 
-#define COLOR_DOUBLE_BLUE 			0b100100
-#define COLOR_DOUBLE_RED 			0b001001
+
+									// RED GRREN BLUE
+#define COLOR_DOUBLE_BLUE 			0b001001
+#define COLOR_DOUBLE_RED 			0b100100
 #define COLOR_DOUBLE_GREEN 			0b010010
 #define COLOR_DOUBLE_PURPLE			0b101101
-#define COLOR_DOUBLE_YELLOW			0b011011
+#define COLOR_DOUBLE_YELLOW			0b110110
 
 #define TurnLEDButton(color) XGpio_DiscreteWrite(&gpButton, GPIO_LEDS_CHANNEL, color)
 #define TurnLEDSwitch(color) XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, color)

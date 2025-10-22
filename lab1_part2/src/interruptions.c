@@ -9,24 +9,14 @@
 
 #include "routeur.h"
 
-void fit_timer_isr (void *p_int_arg, CPU_INT32U source_cpu){
-
-}
-
-void gpio_isr0(void *p_int_arg, CPU_INT32U source_cpu) {
-//	button_data = Xgpio_DiscreteRead(&gpButton, 1); //get button data from
-//	Xgpio_DiscreteWrite(&gpButton, 2, button_data); //write switch data to the corresponding LEDs
-}
-
-void gpio_isr1(void *p_int_arg, CPU_INT32U source_cpu) {
-
-}
 
 void initialize_gpio0()
 {
 	if (XST_DEVICE_NOT_FOUND == XGpio_Initialize(&gpButton, GPIO_BUTTON_DEVICE_ID))
 		UCOS_Print("Erreur init gpio\n");
-	XGpio_SetDataDirection(&gpButton, 1, 0x1);
+	XGpio_SetDataDirection(&gpButton, 1, 0x1);XGpio_InterruptEnable(&gpButton, XGPIO_IR_CH1_MASK);
+	XGpio_InterruptGlobalEnable(&gpButton);
+
 	XGpio_SetDataDirection(&gpButton, 2, 0x0);
 	XGpio_InterruptGlobalEnable(&gpButton);
 	XGpio_InterruptEnable(&gpButton, XGPIO_IR_MASK);
@@ -126,7 +116,6 @@ void connect_axi() {
 	connect_gpio_irq1();
 	connect_fit_timer_irq0();
 	XIntc_Start(&axi_intc, XIN_REAL_MODE);
-
 
 }
 

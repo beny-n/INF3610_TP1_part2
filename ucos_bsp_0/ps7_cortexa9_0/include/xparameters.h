@@ -506,13 +506,14 @@
 /******************************************************************/
 
 #endif  /* end of protection macro */
+#define UCOS_SDCARD_EN DEF_DISABLED
 #define XPAR_PS7_ETHERNET_0_INT_SOURCE 54
+
+#define XPAR_PS7_UART_0_INT_SOURCE 59
 
 #define XPAR_PS7_SD_0_INT_SOURCE 56
 
 #define XPAR_PS7_USB_0_INT_SOURCE 53
-
-#define XPAR_PS7_UART_0_INT_SOURCE 59
 
 #define UCOS_ZYNQ_CONFIG_MMU DEF_ENABLED
 #define UCOS_ZYNQ_ENABLE_MMU DEF_ENABLED
@@ -558,4 +559,3 @@
 #define UCOS_RAMDISK_SIZE 128
 #define UCOS_RAMDISK_SECTOR_SIZE 512
 #define UCOS_RAMDISK_BASE_ADDRESS 0
-#define UCOS_SDCARD_EN DEF_DISABLED
