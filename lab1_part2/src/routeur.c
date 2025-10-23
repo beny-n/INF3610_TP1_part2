@@ -102,6 +102,8 @@ int main (void)
 
     create_application();
 
+    routerIsOn = 0;
+    routerIsOnPause = 0;
     OSStart(&err);
     return 0;                                         // Start multitasking
 }
@@ -218,7 +220,7 @@ void Update_TS(Packet* packet) {
 //#define TASK_SHUTDOWN					0x40     // RDV entre gpio_isr0 et StartUp
 //#define TASK_STOP_RDY  				0x80	 // RDV entre fittimer0 et TaskStop
 //#define TASK_STATS_PRINT				0x100    // RDV entre TaskStop et TaskStats
-//#define TASK_RESET_MEASUREMENTS_RDY	z0x200    // RDV entre gpio_isr1 et TaskClearFifo
+//#define TASK_RESET_MEASUREMENTS_RDY	z0x200   // RDV entre gpio_isr1 et TaskClearFifo
 
 void gpio_isr0(void *p_int_arg, CPU_INT32U source_cpu) {
     CPU_TS ts;
@@ -227,51 +229,80 @@ void gpio_isr0(void *p_int_arg, CPU_INT32U source_cpu) {
     // Lire les boutons
     int btn_data = XGpio_DiscreteRead(&gpButton, 1);
 
-    // Nettoyer les interruptions (sinon ça se relance en boucle)
-    XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
-    XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
-
     // Réagir selon le bouton appuyé
     if (btn_data & BP0) {
-        xil_printf("BP0 pressé → Reset Router GREEN\n");
-        OSFlagPost(&RouterStatus, TASK_RESET_RDY, OS_OPT_POST_FLAG_SET, &err);
         XGpio_DiscreteWrite(&gpButton, 2, btn_data);
-        TurnLEDSwitch(COLOR_DOUBLE_GREEN); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_GREEN);
+        OSFlagPost(&RouterStatus, TASK_RESET_RDY, OS_OPT_POST_FLAG_SET, &err);
 
-    } else if (btn_data & BP1) {
-        xil_printf("BP1 pressé → Stop Router YELLOW\n");
-        OSFlagPost(&RouterStatus, TASK_STOP_RDY, OS_OPT_POST_FLAG_SET, &err);
+    } else if (btn_data & BP1 && routerIsOn) {
         XGpio_DiscreteWrite(&gpButton, 2, btn_data);
         TurnLEDSwitch(COLOR_DOUBLE_YELLOW); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_YELLOW);
+        OSFlagPost(&RouterStatus, TASK_STOP_RDY, OS_OPT_POST_FLAG_SET, &err);
 
     } else if (btn_data & BP2) {
-        xil_printf("BP2 pressé → Shutdown Router RED\n");
-        OSFlagPost(&RouterStatus, TASK_SHUTDOWN, OS_OPT_POST_FLAG_SET, &err);
         XGpio_DiscreteWrite(&gpButton, 2, btn_data);
-		TurnLEDSwitch(COLOR_DOUBLE_RED); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_RED);
+        OSFlagPost(&RouterStatus, TASK_SHUTDOWN, OS_OPT_POST_FLAG_SET, &err);
     }
 
-    // Réactiver les interruptions GPIO
-    XGpio_InterruptEnable(&gpButton, XGPIO_IR_MASK);
+    XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
     XGpio_InterruptGlobalEnable(&gpButton);
-}
-
-void gpio_isr1(void *p_int_arg, CPU_INT32U source_cpu) {
-	xil_printf("---------------gpio_isr1---------------\n");
-	XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
-	XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
 }
 
 void fit_timer_isr (void *p_int_arg, CPU_INT32U source_cpu) {
     CPU_TS ts;
     OS_ERR err;
 
-	if(routerIsOn & !routerIsOnPause) {
+    //timer logiciel pour les statistiques
+	if(routerIsOn && !routerIsOnPause) {
+		xil_printf("------------------ FIT TIMER 0 -------------------\n");
 
-	//pour les statistiques
-	xil_printf("---------------timer_isr---------------\n");
+		//OS_OPT_POST_NO_SCHED pour ne pas appeler l'ordonnanceur dans l'ISR
 		OSFlagPost(&RouterStatus, TASK_STATS_PRINT, OS_OPT_POST_FLAG_SET + OS_OPT_POST_NO_SCHED, &err);
 	}
+}
+
+void gpio_isr1(void *p_int_arg, CPU_INT32U source_cpu) {
+	OS_ERR err;
+
+	Prev_Status_CS = Status_CS;
+	Prev_Status_Timer = Status_Timer;
+
+	int switch_data = XGpio_DiscreteRead(&gpSwitch, 1);
+
+	if(routerIsOn && !routerIsOnPause) {
+		switch (switch_data) {
+			case SWITCH0: //00
+				xil_printf("---------------Mutex & SW Timer --------------\n");
+				Status_CS = CS_Mutex;
+				Status_Timer = Timer_Sw;
+				TurnLEDSwitch(COLOR_DOUBLE_PURPLE);
+				break;
+			case SWITCH1: //01
+				xil_printf("---------------Semaphore & SW Timer --------------\n");
+				Status_CS = CS_Semaphore;
+				Status_Timer = Timer_Sw;
+				TurnLEDSwitch(COLOR_DOUBLE_RED);
+				break;
+			case SWITCH2: //10
+				xil_printf("---------------Mutex & HW Timer --------------\n");
+				Status_CS = CS_Mutex;
+				Status_Timer = Timer_Hw;
+				TurnLEDSwitch(COLOR_DOUBLE_YELLOW);
+				break;
+			case SWITCH3: //11
+				xil_printf("---------------Semaphore & HW Timer --------------\n");
+				Status_CS = CS_Semaphore;
+				Status_Timer = Timer_Hw;
+				TurnLEDSwitch(COLOR_DOUBLE_BLUE);
+				break;
+		}
+
+		// lancer le task Measurement
+		OSFlagPost(&RouterStatus, TASK_RESET_MEASUREMENTS_RDY, OS_OPT_POST_FLAG_SET, &err);
+	}
+
+    XGpio_InterruptClear(&gpSwitch, XGPIO_IR_MASK);
+    XGpio_InterruptGlobalEnable(&gpSwitch);
 }
 
 
@@ -281,9 +312,14 @@ CPU_INT64U AXITimer64_Read(void)     // Utilisé dans TaskComputing
     u32 msw1 = XTmrCtr_GetValue(&timer_dev, 1);
     u32 lsw  = XTmrCtr_GetValue(&timer_dev, 0);
     u32 msw2 = XTmrCtr_GetValue(&timer_dev, 1);
-    if (msw2 != msw1) { lsw = XTmrCtr_GetValue(&timer_dev, 0); msw1 = msw2; }
 
-    return (((CPU_INT64U)msw1) << 32) | (CPU_INT64U)lsw;
+    //au moment où ya overflow, on force les 2 msw à être égal
+    if (msw2 != msw1) {
+    	lsw = XTmrCtr_GetValue(&timer_dev, 0);
+    	msw1 = msw2;
+    }
+
+    return (((CPU_INT64U)msw1) << 32) | (CPU_INT64U)lsw; //on combine les 2 timers 32 bits
 }
 
 /*
@@ -393,23 +429,24 @@ void TaskReset(void* data) {
 	OS_ERR err;
 	int i;
 	OS_FLAGS  flags;
+
 	while (true) {
-//		OSTimeDlyHMSM(0, 0, 30, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-		xil_printf("--------------------- Task Reset --------------------\n");
-		flags = OSFlagPost(&RouterStatus, TASKS_ROUTER, OS_OPT_POST_FLAG_SET, &err);
-		xil_printf("--------------------- Flags: %x --------------------------\n", RouterStatus.Flags);
-		OSTaskSuspend((OS_TCB *)0,&err);
+////		OSTimeDlyHMSM(0, 0, 30, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+//		xil_printf("--------------------- Task Reset --------------------\n");
+//		flags = OSFlagPost(&RouterStatus, TASKS_ROUTER, OS_OPT_POST_FLAG_SET, &err);
+//		xil_printf("--------------------- Flags: %x --------------------------\n", RouterStatus.Flags);
+//		OSTaskSuspend((OS_TCB *)0,&err);
 
-		OSFlagPend(&RouterStatus, TASK_RESET_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING, &ts, &err);
-
-		if(routerIsOn) {
-			xil_printf("reset le routeur\n", RouterStatus.Flags );
-			routerIsOn = 1;
-			routerIsOnPause = 0;
-		} else {
+		OSFlagPend(&RouterStatus, TASK_RESET_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING + OS_OPT_PEND_FLAG_CONSUME, &ts, &err);
+        TurnLEDSwitch(COLOR_DOUBLE_GREEN); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_GREEN);
+		if(!routerIsOn) {
 			//on lance pour la première fois le système
 			xil_printf("----------------- System Start --------------------\n");
 			routerIsOn = 1;
+			routerIsOnPause = 0;
+		} else {
+			//On relance le système
+			xil_printf("-------------------- System Resume --------------------\n");
 			routerIsOnPause = 0;
 		}
 
@@ -421,42 +458,24 @@ void TaskStop(void* data){
 	CPU_TS ts;
 	OS_ERR err;
 	OS_FLAGS  flags;
-		OSSemPend(&Sem,0, OS_OPT_PEND_BLOCKING, &ts, &err);
-		// Suspend all tasks except statistics one
-		xil_printf("--------------------- Task stop suspend all tasks -------------\n");
-		float nb_tick_float = (float) OSTimeGet(&err);
-		float period_float = 1.0 / (float) OS_CFG_TICK_RATE_HZ;
-		xil_printf("Temps total d'ex�cution :");
-		printf("'%.5f' ms", nb_tick_float * period_float);
-		flags = OSFlagPost(&RouterStatus, TASKS_ROUTER, OS_OPT_POST_FLAG_CLR, &err);
-		xil_printf("--------------------- Flags: %x ---------------------------------------\n", RouterStatus.Flags);
-		OSTaskSuspend((OS_TCB *)0,&err);
 
+		// on est en train d'attendre la suspension du système
+	while(1) {
+		OSFlagPend(&RouterStatus, TASK_STOP_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING + OS_OPT_PEND_FLAG_CONSUME, &ts, &err);
+		TurnLEDSwitch(COLOR_DOUBLE_YELLOW); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_YELLOW);
 
-		// on est en train d'attendre la
-		while(1) {
-			OSFlagPend(&RouterStatus, TASK_RESET_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING + OS_OPT_PEND_FLAG_CONSUME, &ts, &err);
-			if (routerIsOnPause == 0 && routerIsOn == 1) {
-				// Met le système en pause
-//				OSFlagPost(&RouterStatus, TASK_RESET_RDY);
-				routerIsOnPause = 1;
-				xil_printf("-------- System Temporarily Suspended ---------\n");
+		if (routerIsOn && !routerIsOnPause) {
+			// Met le système en pause
+			routerIsOnPause = 1;
+			xil_printf("-------- System Temporarily Suspended ---------\n");
 
-				/* Ici on affichera les statistiques à la Manip 2
-				 *   (via TaskStats et le flag TASK_STATS_PRINT)
-				 */
+			/* Ici on affichera les statistiques à la Manip 2
+			 *   (via TaskStats et le flag TASK_STATS_PRINT)
+			 */
+
+//			OSFlagPost(&RouterStatus, TASK_STATS_PRINT, OS_OPT_POST_FLAG_SET, &err);
 			}
 		}
-		// 2 choses à compléter :
-		// 1)
-		// Rendez-vous avec gpio_isr0 via TASK_STOP_RDY
-		// 2)
-		// Si le système n'est pas suspendu temporairement
-		// - On le suspend temporairement avec la bonne variable globale
-		// - On affiche :
-//		xil_printf("-------- System Temporarily Suspended ---------\n");
-		// - Ici on devrait aussi afficher les statistiques, mais on le fera dans
-		// la prochaine section (voir point 1 dans TaskStats)
 }
 
 /*
@@ -507,7 +526,7 @@ unsigned int  computeCRC(uint16_t* w, int nleft) {
 
 /*
  *********************************************************************************************************
- *											  TaskQueeing
+ *											  TaskQueuing
  *
  *********************************************************************************************************
  */
@@ -638,7 +657,7 @@ void TaskComputing(void *pdata) {
 
 			case PACKET_VIDEO:
 #if MUTEX == 1
-				t1 =  CPU_TS_Get64();
+				t1 =  CPU_TS_Get64(); // REMPLACER CPU_TS_Get64 par AXITimer64_Read()
 				OSMutexPend(&mutTaskComputing, 0, OS_OPT_PEND_BLOCKING, &ts, &perr);
 				t2 =  CPU_TS_Get64();
 				average_blocking_mutex =  average_blocking_mutex + (t2 - t1);
@@ -835,10 +854,10 @@ void TaskOutputPort(void *data) {
 
 	while (1) {
 
-		OSFlagPend(&RouterStatus, TASK_STATS_RDY, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING, &ts, &err);
+		//attends le Post du fit_timer_isr
+		OSFlagPend(&RouterStatus, TASK_STATS_PRINT, 0, OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING + OS_OPT_PEND_FLAG_CONSUME, &ts, &err);
 
 		OSMutexPend(&mutPrint, 0, OS_OPT_PEND_BLOCKING, &ts, &err);
-
 		xil_printf("\n------------------ Affichage des statistiques ------------------\n\n");
 		xil_printf("\n------------------ Etape 0: Code de depart ------------------\n\n");
 		xil_printf("Delai pour vider les fifos sec: %d\n", delai_pour_vider_les_fifos_sec);
@@ -971,11 +990,11 @@ void TaskOutputPort(void *data) {
 		nbPacketRejetesTotal = nbPacketMauvaisCRCTotal + nbPacketMauvaiseSourceTotal + nbPacketFIFOpleineTotal + nbPacketMauvaisePrioriteTotal;
 
 
-		// On stoppe tout le programme quand on a atteint la limite de paquets
-		if (nbPacketCrees > limite_de_paquets)  OSSemPost(&Sem,  OS_OPT_POST_1 + OS_OPT_POST_NO_SCHED, &err);
-
-		// On imprime ls statistiques � toutes les 30 secondes
-		OSTimeDlyHMSM(0, 0, 30, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+//		// On stoppe tout le programme quand on a atteint la limite de paquets
+//		if (nbPacketCrees > limite_de_paquets)  OSSemPost(&Sem,  OS_OPT_POST_1 + OS_OPT_POST_NO_SCHED, &err);
+//
+//		// On imprime ls statistiques � toutes les 30 secondes
+//		OSTimeDlyHMSM(0, 0, 30, 0, OS_OPT_TIME_HMSM_STRICT, &err);
 
 	}
 }
@@ -995,6 +1014,7 @@ void StartupTask (void *p_arg)
 {
 	int i;
 		OS_ERR err;
+		CPU_TS ts;
 	    KAL_ERR kal_err;
 	    CPU_INT32U tick_rate;
 	#if (UCOS_START_DEBUG_TRACE == DEF_ENABLED)
@@ -1154,7 +1174,39 @@ void StartupTask (void *p_arg)
 
     OSTaskCreate(&TaskStopTCB, "TaskStop", TaskStop, (void*)0, TaskStopPRIO, &TaskStopSTK[0u], TASK_STK_SIZE / 2, TASK_STK_SIZE, 1, 0, (void*)0, (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR), &err);
 
-    OSTaskSuspend((OS_TCB *)0,&err);
+//    OSTaskSuspend((OS_TCB *)0,&err); ON REMPLACE PAR CI-DESSOUS
+    UCOS_Print("Router initialized - Ready to launch - Hit push button\r\n");
+//    Mettre ici le OSFlagPend() qui bloque sur TASK_SHUTDOWN
+//    On arrête le système de manière permanente avec la bonne variable globale
+//    On arrête les tâches du routeur avec le masque TASK_ROUTER
 
+
+    //On attend de shutdown le système
+    OSFlagPend(&RouterStatus, TASK_SHUTDOWN, 0,OS_OPT_PEND_FLAG_SET_ALL + OS_OPT_PEND_BLOCKING + OS_OPT_PEND_FLAG_CONSUME, &ts, &err);
+	TurnLEDSwitch(COLOR_DOUBLE_RED); //        XGpio_DiscreteWrite(&gpSwitch, GPIO_LEDS_CHANNEL, COLOR_DOUBLE_RED);
+
+    routerIsOn = 0;
+    routerIsOnPause = 0;
+    OSFlagPost(&RouterStatus, TASKS_ROUTER, OS_OPT_POST_FLAG_CLR, &err);
+
+    xil_printf("--------------------- Task stop suspend all tasks -------------\n");
+
+    float nb_tick_float = (float) OSTimeGet(&err);
+    float period_float = 1.0 / (float) OS_CFG_TICK_RATE_HZ;
+    xil_printf("Temps total d'exécution :");
+    printf("'%.5f' ms", nb_tick_float * period_float);
+
+    // Dans la prochaine et dernière partie 3 du lab 1, nous procéderons à la
+    // destruction des tâches ici mais en attendant mettez :
+
+    XGpio_InterruptClear(&gpButton, XGPIO_IR_MASK);
+
+    UCOS_Print("Prepare to shutdown System - \r\n");
+    while (1) { // indique que le système est en arrêt permanent
+    	TurnLEDButton(0b1111); // mettre 4 bits
+    	OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    	TurnLEDButton(0b0000);
+    	OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
 }
 
